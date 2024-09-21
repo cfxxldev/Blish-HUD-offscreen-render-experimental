@@ -150,7 +150,7 @@ namespace Blish_HUD.GameIntegration {
         // Settings
         private SettingEntry<string> _gw2ExecutablePath;
 
-        private readonly string[] _processNames = { "Gw2-64", "Gw2", "KZW" };
+        private readonly string[] _processNames = { "Gw2-64", "Gw2", "KZW", "devenv" };
 
         private bool _exitLocked = false;
 

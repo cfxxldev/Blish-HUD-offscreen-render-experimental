@@ -19,24 +19,24 @@ namespace Blish_HUD.GameIntegration {
             DefaultDevice
         }
 
-        private const    string                APPLICATION_SETTINGS         = "OverlayConfiguration";
-        private const    string                USEGAMEVOLUME_SETTINGS       = "GameVolume";
-        private const    string                VOLUME_SETTINGS              = "Volume";
-        private const    string                DEVICE_SETTINGS              = "OutputDevice";
-        private const    int                   CHECK_INTERVAL               = 250;
-        private const    int                   AUDIO_DEVICE_UPDATE_INTERVAL = 10000;
-        private const    int                   AUDIOBUFFER_LENGTH           = 20;
-        private const    float                 MAX_VOLUME                   = 0.4f;
-        private readonly RingBuffer<float>     _audioPeakBuffer             = new RingBuffer<float>(AUDIOBUFFER_LENGTH);
-        private readonly MMDeviceEnumerator    _deviceEnumerator;
-        private          SettingEntry<bool>    _useGameVolume;
-        private          SettingEntry<Devices> _deviceSetting;
-        private          SettingEntry<float>   _volumeSetting;
+        private const string APPLICATION_SETTINGS = "OverlayConfiguration";
+        private const string USEGAMEVOLUME_SETTINGS = "GameVolume";
+        private const string VOLUME_SETTINGS = "Volume";
+        private const string DEVICE_SETTINGS = "OutputDevice";
+        private const int CHECK_INTERVAL = 250;
+        private const int AUDIO_DEVICE_UPDATE_INTERVAL = 10000;
+        private const int AUDIOBUFFER_LENGTH = 20;
+        private const float MAX_VOLUME = 0.4f;
+        private readonly RingBuffer<float> _audioPeakBuffer = new RingBuffer<float>(AUDIOBUFFER_LENGTH);
+        private readonly MMDeviceEnumerator _deviceEnumerator;
+        private SettingEntry<bool> _useGameVolume;
+        private SettingEntry<Devices> _deviceSetting;
+        private SettingEntry<float> _volumeSetting;
 
         private readonly AudioEndpointNotificationReceiver _audioEndpointNotificationReceiver;
         private readonly List<(MMDevice AudioDevice, AudioMeterInformation MeterInformation)> _gw2AudioDevices = new List<(MMDevice AudioDevice, AudioMeterInformation MeterInformation)>();
 
-        private double _timeSinceCheck             = 0;
+        private double _timeSinceCheck = 0;
         private double _timeSinceAudioDeviceUpdate = 0;
 
         private float? _volume;
@@ -80,8 +80,8 @@ namespace Blish_HUD.GameIntegration {
             _deviceEnumerator.RegisterEndpointNotificationCallback(_audioEndpointNotificationReceiver);
 
             _audioEndpointNotificationReceiver.DefaultDeviceChanged += delegate { UpdateAudioDevice(); };
-            _deviceSetting.SettingChanged                           += delegate { UpdateAudioDevice(); };
-            _service.Gw2Instance.Gw2Started                         += delegate { InitializeProcessMeterInformations(); };
+            _deviceSetting.SettingChanged += delegate { UpdateAudioDevice(); };
+            _service.Gw2Instance.Gw2Started += delegate { InitializeProcessMeterInformations(); };
         }
 
         public override void Update(GameTime gameTime) {
@@ -182,7 +182,7 @@ namespace Blish_HUD.GameIntegration {
                     // Skip this audio device.  Something about it is unsupported.
                     continue;
                 } catch (Exception) {
-                    continue; 
+                    continue;
                 }
 
                 bool shouldDispose = true;
@@ -196,7 +196,10 @@ namespace Blish_HUD.GameIntegration {
                 }
 
                 if (shouldDispose) {
-                    device.Dispose();
+                    try {
+                        device?.Dispose();
+                    } catch {
+                    }
                 }
             }
         }
@@ -206,7 +209,10 @@ namespace Blish_HUD.GameIntegration {
             _deviceEnumerator.Dispose();
 
             foreach (var device in _gw2AudioDevices) {
-                device.AudioDevice.Dispose();
+                try {
+                    device.AudioDevice?.Dispose();
+                } catch {
+                }
             }
         }
 
