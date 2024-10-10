@@ -114,7 +114,7 @@ namespace Blish_HUD {
         private static int SetWindowLong(IntPtr hWnd, int nIndex, uint dwNewLong) => IntPtr.Size != 8 ? SetWindowLong32(hWnd, nIndex, dwNewLong) : (int) SetWindowLongPtr64(hWnd, nIndex, new UIntPtr(dwNewLong));
 
         private static void SetWindowParam(IntPtr winHandle, bool showInTaskbar = false) {
-            uint windowParam = WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_CONTROLPARENT | WS_EX_LAYERED;
+            uint windowParam = /*WS_EX_TOPMOST |*/ WS_EX_TRANSPARENT | WS_EX_CONTROLPARENT | WS_EX_LAYERED;
 
             if (showInTaskbar) {
                 ShowWindow(winHandle, SW_HIDE);
@@ -174,7 +174,7 @@ namespace Blish_HUD {
                 Logger.Warn($"{nameof(ClientToScreen)} failed with error code {errorCode}.");
                 return (OverlayUpdateResponse.Errored, screenPoint.X == MINIMIZED_POS, errorCode);
             }
-
+            screenPoint.X += 8000;
             GameService.Debug.StartTimeFunc("GetForegroundWindow");
             var activeWindowHandle = GetForegroundWindow();
             GameService.Debug.StopTimeFunc("GetForegroundWindow");
@@ -210,7 +210,7 @@ namespace Blish_HUD {
                     pos.Height
                 );
 
-                SetWindowPos(winHandle, HWND_TOPMOST, clientRect.Left + screenPoint.X, clientRect.Top + screenPoint.Y, clientRect.Right - clientRect.Left, clientRect.Bottom - clientRect.Top, 0);
+                SetWindowPos(winHandle, HWND_NOTOPMOST, clientRect.Left + screenPoint.X, clientRect.Top + screenPoint.Y, clientRect.Right - clientRect.Left, clientRect.Bottom - clientRect.Top, 0);
 
                 var marg = new Margins {
                     cxLeftWidth    = 0,

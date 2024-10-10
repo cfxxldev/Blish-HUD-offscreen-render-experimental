@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using Blish_HUD.Debug;
 using Blish_HUD.GameServices;
 using Blish_HUD.Settings;
@@ -184,6 +185,7 @@ namespace Blish_HUD.GameIntegration {
 
         private void InitializeProcessMeterInformations() {
             if (!_service.Gw2Instance.Gw2IsRunning) return;
+            if (ApplicationSettings.Instance.SkipAudioIntegration) return;
 
             _gw2AudioDevices.Clear();
             foreach (var device in _deviceEnumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)) {
