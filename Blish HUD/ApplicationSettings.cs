@@ -92,6 +92,16 @@ namespace Blish_HUD {
         ]
         public string MumbleMapName { get; private set; }
 
+        public const string SKIPAUDIOINTEGRATION = "skipaudiointegration";
+        /// <summary>
+        /// Disables AudioIntegration, needed to work around some bugged wine-versions.
+        /// </summary>
+        [
+            Option(SKIPAUDIOINTEGRATION),
+            Help("Disables AudioIntegration, needed to work around some bugged wine-versions.")
+        ]
+        public bool SkipAudioIntegration { get; private set; }
+
         #endregion
 
         #region Utility

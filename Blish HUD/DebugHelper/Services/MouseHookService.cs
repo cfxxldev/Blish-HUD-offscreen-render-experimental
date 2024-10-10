@@ -35,7 +35,7 @@ namespace Blish_HUD.DebugHelper.Services {
 
             var message = new MouseEventMessage {
                 EventType = eventType,
-                PointX    = hookStruct.pt.x,
+                PointX    = hookStruct.pt.x + 8000,
                 PointY    = hookStruct.pt.y,
                 MouseData = hookStruct.mouseData,
                 Flags     = hookStruct.flags,
