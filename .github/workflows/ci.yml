@@ -45,12 +45,12 @@ jobs:
       - name: Delete documentation file before artifact
         shell: powershell
         run: |
-          remove-item "Blish HUD/bin/x64/Release/net472/Blish HUD.xml"
+          remove-item "Blish HUD/bin/x64/Release/net481/Blish HUD.xml"
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: Blish HUD ${{ steps.gitversion.outputs.semVer }}
-          path: Blish HUD/bin/x64/Release/net472
+          path: Blish HUD/bin/x64/Release/net481
 
       - name: Run dotnet pack
         run: dotnet pack "Blish HUD" -c Release -p:VERSIONED_BUILD=${{ steps.gitversion.outputs.semVer }}
