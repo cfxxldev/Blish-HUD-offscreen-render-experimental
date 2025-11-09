@@ -2,12 +2,10 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Threading;
 using System.Windows.Forms;
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Color = Microsoft.Xna.Framework.Color;
-using System.IO.MemoryMappedFiles;
-using System.Threading.Tasks;
 
 
 namespace Blish_HUD {
@@ -111,7 +109,7 @@ namespace Blish_HUD {
 
         protected override void EndRun() {
             _renderTexture?.Dispose();
-            
+
             if (_mmf != null && _buffer != null) {
                 Array.Clear(_buffer, 0, _buffer.Length);
                 using (var accessor = _mmf.CreateViewAccessor()) {
@@ -157,7 +155,6 @@ namespace Blish_HUD {
                 service.DoUpdate(gameTime);
                 GameService.Debug.StopTimeFunc($"Service: {service.GetType().Name}");
             }
-
             base.Update(gameTime);
 
             _drawLag += (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -171,27 +168,35 @@ namespace Blish_HUD {
             _skipDraw = true;
         }
 
-        internal void ReadRenderTargetContent(int pageLen) {
+        private void ReadRenderTargetContent(int pageLen) {
             if (_renderTexture == null) return;
 
             if (_buffer == null || _buffer.Length < pageLen) {
                 _buffer = new Color[pageLen];
             }
-
             _renderTexture.GetData(_buffer, 0, pageLen);
-
-            int chunkLen = pageLen / 8;
 
             using (var accessor = _mmf.CreateViewAccessor(0, pageLen * 4)) {
                 if (accessor != null) {
-
-                    Parallel.For(0, 8, (int iChunk) => {
-                        accessor.WriteArray(iChunk * chunkLen * 4, _buffer, iChunk * chunkLen, chunkLen);
-                    });
+                    using (var handle = accessor.SafeMemoryMappedViewHandle) unsafe {
+                            byte* ptr = null;
+                            try {
+                                handle.AcquirePointer(ref ptr);
+                                fixed (Color* buf = _buffer) {
+                                    Color* srcPtr = buf;
+                                    Color* destPtr = ((Color*)ptr);
+                                    Buffer.MemoryCopy(srcPtr, destPtr, pageLen * sizeof(Color), pageLen * sizeof(Color));
+                                }
+                            } finally {
+                                if (ptr != null) {
+                                    handle.ReleasePointer();
+                                }
+                            }
+                        }
                 }
             }
         }
-        internal void RenderToTexture(GameTime gameTime) {
+        private void RenderToTexture(GameTime gameTime) {
             using var ctx = GameService.Graphics.LendGraphicsDeviceContext();
             var width = ctx.GraphicsDevice.PresentationParameters.BackBufferWidth;
             var height = ctx.GraphicsDevice.PresentationParameters.BackBufferHeight;
@@ -205,7 +210,7 @@ namespace Blish_HUD {
                     Logger.Info("new rendertarget: " + mapname);
                     _renderTexture = new RenderTarget2D(ctx.GraphicsDevice, width,
                         height, false, SurfaceFormat.Bgr32, DepthFormat.Depth24, 1, RenderTargetUsage.PreserveContents);
-                    _mmf = MemoryMappedFile.CreateFromFile("tmp\\blishhud\\" + mapname, FileMode.OpenOrCreate, mapname, pageLen * 4 * 2, MemoryMappedFileAccess.ReadWrite);
+                    _mmf = MemoryMappedFile.CreateFromFile("tmp\\blishhud\\" + mapname, FileMode.OpenOrCreate, mapname, pageLen * 4, MemoryMappedFileAccess.ReadWrite);
                 }
 
                 if (_renderTexture.Width != width || _renderTexture.Height != height) {
@@ -218,6 +223,11 @@ namespace Blish_HUD {
                 ctx.GraphicsDevice.SetRenderTarget(_renderTexture);
                 ctx.GraphicsDevice.DepthStencilState = new DepthStencilState() { DepthBufferEnable = true };
                 GameService.Graphics.Render(gameTime, _basicSpriteBatch);
+
+                _basicSpriteBatch.Begin();
+                GameService.Debug.DrawDebugOverlay(_basicSpriteBatch, gameTime);
+                _basicSpriteBatch.End();
+
                 ctx.GraphicsDevice.SetRenderTargets(null);
 
                 ReadRenderTargetContent(pageLen);
