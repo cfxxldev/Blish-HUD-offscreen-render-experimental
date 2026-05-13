@@ -225,8 +225,9 @@ namespace Blish_HUD {
         private void UserLocaleOnSettingChanged(object sender, ValueChangedEventArgs<Locale> e) {
             var culture = GetCultureFromGw2Locale(e.NewValue);
 
+            // Update the UI culture for the entire application domain by setting DefaultThreadCurrentUICulture
+            // DO NOT change CurrentUICulture, otherwise running threads will NOT get updated with the new default.
             CultureInfo.DefaultThreadCurrentUICulture = culture;
-            CultureInfo.CurrentUICulture              = culture;
 
             this.UserLocaleChanged?.Invoke(this, new ValueEventArgs<CultureInfo>(culture));
         }
@@ -338,7 +339,7 @@ namespace Blish_HUD {
         }
 
         private void BuildCornerIcon() {
-            this.BlishMenuIcon = new CornerIcon(Content.GetTexture("logo"), Content.GetTexture("logo-big"), Strings.Common.BlishHUD) {
+            this.BlishMenuIcon = new CornerIcon(Content.GetTexture("logo"), Content.GetTexture("logo-big"), $"{Strings.Common.BlishHUD}\n\n{Strings.GameServices.InputService.Input_Mouse2}: {Strings.Common.Hint_MoreOptions}") {
                 Priority = int.MaxValue,
                 Parent   = Graphics.SpriteScreen,
             };
